@@ -1499,7 +1499,12 @@ function lfInit(){
   LF.points=L.layerGroup().addTo(m);
   LF.clusters=L.layerGroup().addTo(m);
   LF.glow=L.geoJSON({type:"FeatureCollection",features:STATES.features.filter(f=>f.properties.st_nm==="Himachal Pradesh")},{renderer:rend,interactive:false}).addTo(m);LF.glow.bringToBack();LF.hpd.bringToBack();LF.states.bringToBack();
-  m.fitBounds(L.latLngBounds(allBounds.map(p=>[p[1],p[0]])),lfPadOpts());
+  const fitHome=()=>m.fitBounds(L.latLngBounds(allBounds.map(p=>[p[1],p[0]])),lfPadOpts());
+  LF.fitted=m.getContainer().clientWidth>0;
+  if(LF.fitted)fitHome();else m.setView([31.9,77.2],7);
+  /* If the page loaded while hidden (size 0), fit properly once it gets a real size */
+  if(window.ResizeObserver)new ResizeObserver(()=>{m.invalidateSize();if(!LF.fitted&&m.getContainer().clientWidth>0){LF.fitted=true;layoutDesk();fitHome();}}).observe(m.getContainer());
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){m.invalidateSize();if(!LF.fitted&&m.getContainer().clientWidth>0){LF.fitted=true;fitHome();}}});
   mapReady=true;lfStyle();refreshMap();addOverlays();
   let clT;m.on("zoomend",()=>{updateLabels();clearTimeout(clT);clT=setTimeout(lfCluster,90);});
   /* Smooth wheel / trackpad-pinch zoom: follows the gesture every frame */
